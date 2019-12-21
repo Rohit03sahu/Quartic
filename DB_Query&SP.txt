@@ -1,0 +1,95 @@
+
+Note : Please Add DB Details in Web.config file which is persent source code folder.
+
+
+-- Data Stream Table
+
+CREATE TABLE [dbo].[T_StreamingData](
+	[StreamingData_TblRef] [int] IDENTITY(1,1) NOT NULL,
+	[signal] [varchar](8) NULL,
+	[value_type] [varchar](8) NULL,
+	[value] [varchar](16) NULL,
+	[ViolationFlag] [int] NULL,
+	[EntryDate] [datetime2](7) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[StreamingData_TblRef] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+
+
+
+-- Rules Table
+
+CREATE TABLE [dbo].[T_Rules](
+	[Rule_TbleRefID] [int] IDENTITY(1,1) NOT NULL,
+	[rule_signal] [varchar](8) NULL,
+	[rule_desc] [varchar](64) NULL,
+	[EntryDateTime] [datetime2](7) NULL,
+	[rule_minvalues] [varchar](16) NULL,
+	[rule_maxvalues] [varchar](16) NULL,
+	[rule_valuetype] [varchar](16) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[Rule_TbleRefID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+
+
+
+
+--=============================================================================================  
+--Name : Rohit sahu  
+--Date :16th dec 2019  
+--Desc : Push Live streaming data  
+
+--=============================================================================================  
+CREATE PROC USP_Save_DataStreaming  
+@xml varchar(max)  
+As  
+BEGIN TRY      
+	  
+	SET NOCOUNT ON;      
+	DECLARE @ErrorMsg NVARCHAR(MAX)      
+	DECLARE @idoc INT      
+	EXEC SP_XML_PREPAREDOCUMENT @idoc OUTPUT,@XML      
+	  
+	BEGIN TRAN      
+
+	INSERT INTO T_StreamingData  
+	(  
+		signal,  
+		value_type,  
+		value,  
+		ViolationFlag,  
+		EntryDate  
+	)  
+	SELECT   
+		signal,  
+		value_type,  
+		value,  
+		ViolationFlag,  
+		GETDATE()  
+	FROM OPENXML (@idoc,'root/datastream', 2)            
+	WITH          
+	(      
+		signal varchar(8),  
+		value_type varchar(8),  
+		value varchar(16),  
+		ViolationFlag int  
+	) T      
+
+	COMMIT TRAN      
+		
+END TRY     
+
+BEGIN CATCH      
+  
+	IF XACT_STATE() != 0      
+		ROLLBACK TRANSACTION      
+	SET @ErrorMsg='DB:'+@ErrorMsg      
+	RAISERROR (@ErrorMsg, 16, 1, 'WITH NOWAIT')      
+	  
+END CATCH 

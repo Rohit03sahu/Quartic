@@ -1,0 +1,92 @@
+Ques 1 : Briefly describe the conceptual approach you chose! What are the trade-offs?
+
+
+######################## Data Stream Process Apporch
+Security : Basic Authentication
+Username : ApiUser
+Password : ApiPass
+
+1. To Get Rules info 
+
+(Get) http://localhost:51170/quartic/api/getrule
+
+2. Create new rule for rule engine
+
+(Post) http://localhost:51170/quartic/api/buildrule
+	Request :   { 
+					"rule_signal":"ATL7",
+					"rule_minvalues":"0.0",
+					"rule_maxvalues":"1.0",
+					"rule_valuetype":"Integer",
+					"rule_desc":"check the double values from intput."
+				}
+				
+3. Update rule in rule engine according to ruleID
+
+(Put) http://localhost:51170/quartic/api/updaterule				
+	Request:
+				{
+						"rule_ID": 3,
+						"rule_signal":"ATL8",
+						"rule_minvalues":"LOW",
+						"rule_maxvalues":"LOW",
+						"rule_valuetype":"string",
+						"rule_desc":"check the double values from intput."
+				}
+
+4. Delete rule from rule engine according to ruleID
+
+(Delete) http://localhost:51170/quartic/api/deleterule/{RuleID}	
+
+
+5. Save Data Stream with implementation of rule engine 
+
+(Post) http://localhost:51170/quartic/api/validatestream			
+	Request :
+				[
+					{
+						"signal": "ATL2",
+						"value_type": "String",
+						"value": "HIGH"
+					},
+					{
+						"signal": "ATL9",
+						"value_type": "Datetime",
+						"value": "2017-06-35 22:40:10"
+					},
+					{
+						"signal": "ATL3",
+						"value_type": "String",
+						"value": "LOW"
+					}
+
+6. Get Violation report
+
+(Get) http://localhost:51170/quartic/api/getviolationreport	
+
+
+Tradesoff : 
+			1. Keep value_type always intger,datetime & string
+			2. validation of datetime already done in code by default Like Future data & Invalid dateTime
+			3. String could be Either Low or HIGH
+			4. have maintained inegter value_type for all numeric values.
+
+
+
+Ques 2 : What's the runtime performance? What is the complexity? Where are the bottlenecks?
+Ans 3 :
+		Runtime Performance : 300 milisecond for 200 records
+		
+		Time Complexity : O(n*n). (validate datastream api)
+		
+		bottlenecks : 
+						1. we cannot extract single signal violation now. We can improve this one in future.
+						2. Keep Data packet size less than 2 MB.
+						3. For numeric data we have onle Integer data type.
+
+
+
+Ques 3 : If you had more time, what improvements would you make, and in what order of priority?
+Ans 3 : If I'm having more time then I'll implement token based authentication and will use some in-memroy tool like redis to keep or maintain the rule engine to increase the performance of code.
+		And I'll try optimize the code for better performance and try to reduce time complexity.
+
